@@ -1,18 +1,3 @@
-# coding=utf-8
-# Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
-# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Run GPT2 small on SQuAD."""
 
 from __future__ import absolute_import, division, print_function
@@ -183,7 +168,7 @@ def main():
         model = torch.nn.DataParallel(model)
 
     # Prepare optimizer
-    param_optimizer = list(model.named_parameters())# 这一步得到了模型的所有参数及其名称。
+    param_optimizer = list(model.named_parameters()) # 这一步得到了模型的所有参数及其名称。
 
     # hack to remove pooler, which is not used
     # thus it produce None grad that break apex
@@ -199,10 +184,12 @@ def main():
     if num_train_optimization_steps is None:
         num_train_optimization_steps = 1
 
-    optimizer = GPT2Adam(optimizer_grouped_parameters,
-                         lr=args.learning_rate,
-                         warmup=args.warmup_proportion,
-                         t_total=num_train_optimization_steps)
+    # optimizer = GPT2Adam(optimizer_grouped_parameters,
+    #                      lr=args.learning_rate,
+    #                      warmup=args.warmup_proportion,
+    #                      t_total=num_train_optimization_steps)
+
+    optimizer = torch.optim.AdamW(optimizer_grouped_parameters, lr=args.learning_rate, foreach=False)
 
     global_step = 0
     if args.do_train: # 2 test
@@ -248,8 +235,9 @@ def main():
 
                 loss.backward()
                 pbar.update(1)
-                if step % 10 == 0:
+                if step % 1 == 0:
                     pbar.set_description(desc=f'loss:{np.mean(total_loss)}')
+                    print("loss: ",np.mean(total_loss))
                     total_loss = 0
                 if (step + 1) % args.gradient_accumulation_steps == 0:
                     optimizer.step()
