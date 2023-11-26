@@ -199,10 +199,12 @@ def main():
     if num_train_optimization_steps is None:
         num_train_optimization_steps = 1
 
-    optimizer = GPT2Adam(optimizer_grouped_parameters,
-                         lr=args.learning_rate,
-                         warmup=args.warmup_proportion,
-                         t_total=num_train_optimization_steps)
+    # optimizer = GPT2Adam(optimizer_grouped_parameters,
+    #                      lr=args.learning_rate,
+    #                      warmup=args.warmup_proportion,
+    #                      t_total=num_train_optimization_steps)
+
+    optimizer = torch.optim.AdamW(optimizer_grouped_parameters, lr=args.learning_rate, foreach=False)
 
     global_step = 0
     if args.do_train: # 2 test
@@ -248,9 +250,10 @@ def main():
 
                 loss.backward()
                 pbar.update(1)
-                if step % 10 == 0:
+                if step % 1 == 0:
                     pbar.set_description(desc=f'loss:{np.mean(total_loss)}')
                     total_loss = 0
+                    print("loss = " ,np.mean(total_loss))
                 if (step + 1) % args.gradient_accumulation_steps == 0:
                     optimizer.step()
                     optimizer.zero_grad()
